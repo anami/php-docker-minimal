@@ -1,0 +1,51 @@
+version: "3.2"
+services:
+  php:
+    build: 
+      context: './php/'
+      dockerfile: php5.Dockerfile
+    networks:
+      - backend
+    volumes:
+      - ./public_html/:/var/www/html/
+  apache:
+    build: './apache/'
+    depends_on:
+      - php
+      - mysql
+    networks:
+      - frontend
+      - backend
+    ports:
+      - "8080:80"
+    volumes:
+      - ./public_html/:/var/www/html/
+  mysql:
+    image: mysql:5.6.40
+    command: --max_allowed_packet=32505856
+    ports:
+      - 8083:3306
+    networks:
+      - backend
+    environment:
+      - MYSQL_ROOT_PASSWORD=rootpassword
+    volumes:
+      - mysql-data-volume:/var/lib/mysql
+  phpmyadmin:
+    image: phpmyadmin
+    environment:
+      - PMA_ARBITRARY=1
+      - UPLOAD_LIMIT=64M
+    restart: always
+    ports:
+      - 8084:80
+    networks:
+      - frontend
+      - backend
+    volumes:
+      - /sessions
+networks:
+  frontend:
+  backend:
+volumes:
+  mysql-data-volume:
